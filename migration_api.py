@@ -7,19 +7,22 @@ import json
 
 app = FastAPI()
 
-
 @app.get("/read/{table_name}")
 async def read_table(table_name: str):
     # Leer tabla
     server = 'LAPTOP-DF01N7UN'
     database = 'departments_globant'
+    username= 'moren'
+    password='3423'
 
     # Cadenas de conexión con la autenticación de Windows
     conn_str = (
-        r'DRIVER={SQL Server};'
+        r'DRIVER={ODBC Driver 17 for SQL Server};'
         rf'SERVER={server};'
         rf'DATABASE={database};'
         'Trusted_Connection=yes;'
+        rf'UID={username};'
+        rf'PWD={password};'
     )
 
     # Establecer la conexión
