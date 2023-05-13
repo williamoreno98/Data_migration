@@ -1,34 +1,12 @@
 from fastapi import FastAPI
 from typing import List, Dict
 from fastapi.exceptions import HTTPException
-import avro.schema
-from avro.datafile import DataFileWriter
-from avro.io import DatumWriter
-
+from fastavro import writer, parse_schema
 import pyodbc
 import json
 
 app = FastAPI()
 
-
-def save_avro(table_name: str, rows: list):
-    # Define schema for AVRO file
-    schema = {
-            "type": "record",
-            "name": "Department",
-            "namespace": "your.namespace",
-            "fields": [
-                {"name": "id", "type": "int"},
-                {"name": "department", "type": "string"}
-            ]
-            }
-
-    # Write AVRO file
-    with open(f"{table_name}.avro", "wb") as f:
-        writer = DataFileWriter(f, DatumWriter(), schema)
-        for row in rows:
-            writer.append(row)
-        writer.close()
 
 @app.get("/read/{table_name}")
 async def read_table(table_name: str):
@@ -151,15 +129,117 @@ async def save_table(table_name: str):
     # Cerrar la conexión
     conn.close()
     
-    print(rows)
+    columns = [column[0] for column in cursor.description]
+    rows = [dict(zip(columns, row)) for row in rows]
+    
+    from fastavro import writer, parse_schema
+
+    # Definir el esquema
+    schema = {
+        'doc': 'Empleados',
+        'name': 'Empleado',
+        'namespace': 'test',
+        'type': 'record',
+        'fields': [
+            {'name': 'id', 'type': 'int'},
+            {'name': 'name', 'type': 'string'},
+            {'name': 'datetime', 'type': 'string'},
+            {'name': 'department_id', 'type': 'int'},
+            {'name': 'job_id', 'type': 'int'},
+        ],
+    }
+    parsed_schema = parse_schema(schema)
+
+
+    # Guardar los registros en un archivo avro
+    with open('./Backup/employees.avro', 'wb') as out:
+        writer(out, parsed_schema, rows)
+
+    
+    return {f'message": "Backup exitoso de la tabla {table_name}'}
+
+
+@app.get("/save/{table_name}")
+async def save_table(table_name: str):
+    # Leer tabla
+    server = 'LAPTOP-DF01N7UN'
+    database = 'departments_globant'
+
+    # Cadenas de conexión con la autenticación de Windows
+    conn_str = (
+        r'DRIVER={SQL Server};'
+        rf'SERVER={server};'
+        rf'DATABASE={database};'
+        'Trusted_Connection=yes;'
+    )
+
+    # Establecer la conexión
+    conn = pyodbc.connect(conn_str)
+
+    # Crear un cursor
+    cursor = conn.cursor()
+    print(table_name)
+    print(f'SELECT * FROM {table_name}')
+
+    # Ejecutar una consulta
+    cursor.execute(f'SELECT * FROM {table_name}')
+
+    # Obtener los resultados
+    rows = []
+    for row in cursor:
+        rows.append(row)
+
+    # Cerrar la conexión
+    conn.close()
     
     columns = [column[0] for column in cursor.description]
     rows = [dict(zip(columns, row)) for row in rows]
     
-    # Save AVRO file
-    save_avro(table_name, rows)
+
+    # Definir el esquema
+    schema = {
+        'doc': 'Empleados',
+        'name': 'Empleado',
+        'namespace': 'test',
+        'type': 'record',
+        'fields': [
+            {'name': 'id', 'type': 'int'},
+            {'name': 'name', 'type': 'string'},
+            {'name': 'datetime', 'type': 'string'},
+            {'name': 'department_id', 'type': 'int'},
+            {'name': 'job_id', 'type': 'int'},
+        ],
+    }
+    parsed_schema = parse_schema(schema)
+
+
+    # Guardar los registros en un archivo avro
+    with open('./Backup/employees.avro', 'wb') as out:
+        writer(out, parsed_schema, rows)
+
     
     return {f'message": "Backup exitoso de la tabla {table_name}'}
+
+
+
+@app.get("/read_avro")
+async def read_avro():
+    result=[]
+    import fastavro
+    with open('./Backup/employees.avro', 'rb') as fp:
+        reader = fastavro.reader(fp)
+        print()
+        schema = reader.schema
+        for record in reader:
+            result.append(record)
+    
+    print(result)
+    
+    result=json.JSONEncoder().encode(result)
+    
+    return {result}
+
+
 
 
     
