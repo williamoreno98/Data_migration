@@ -1,11 +1,34 @@
 from fastapi import FastAPI
 from typing import List, Dict
 from fastapi.exceptions import HTTPException
+import avro.schema
+from avro.datafile import DataFileWriter
+from avro.io import DatumWriter
 
 import pyodbc
 import json
 
 app = FastAPI()
+
+
+def save_avro(table_name: str, rows: list):
+    # Define schema for AVRO file
+    schema = {
+            "type": "record",
+            "name": "Department",
+            "namespace": "your.namespace",
+            "fields": [
+                {"name": "id", "type": "int"},
+                {"name": "department", "type": "string"}
+            ]
+            }
+
+    # Write AVRO file
+    with open(f"{table_name}.avro", "wb") as f:
+        writer = DataFileWriter(f, DatumWriter(), schema)
+        for row in rows:
+            writer.append(row)
+        writer.close()
 
 @app.get("/read/{table_name}")
 async def read_table(table_name: str):
@@ -93,3 +116,50 @@ async def insert_data(table_name: str, data: List[Dict]):
     conn.close()
 
     return {"message": "Los datos han sido insertados correctamente."}
+
+
+@app.get("/save/{table_name}")
+async def save_table(table_name: str):
+    # Leer tabla
+    server = 'LAPTOP-DF01N7UN'
+    database = 'departments_globant'
+
+    # Cadenas de conexión con la autenticación de Windows
+    conn_str = (
+        r'DRIVER={SQL Server};'
+        rf'SERVER={server};'
+        rf'DATABASE={database};'
+        'Trusted_Connection=yes;'
+    )
+
+    # Establecer la conexión
+    conn = pyodbc.connect(conn_str)
+
+    # Crear un cursor
+    cursor = conn.cursor()
+    print(table_name)
+    print(f'SELECT * FROM {table_name}')
+
+    # Ejecutar una consulta
+    cursor.execute(f'SELECT * FROM {table_name}')
+
+    # Obtener los resultados
+    rows = []
+    for row in cursor:
+        rows.append(row)
+
+    # Cerrar la conexión
+    conn.close()
+    
+    print(rows)
+    
+    columns = [column[0] for column in cursor.description]
+    rows = [dict(zip(columns, row)) for row in rows]
+    
+    # Save AVRO file
+    save_avro(table_name, rows)
+    
+    return {f'message": "Backup exitoso de la tabla {table_name}'}
+
+
+    
