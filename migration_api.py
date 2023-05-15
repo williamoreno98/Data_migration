@@ -207,6 +207,18 @@ async def insert_data(table_name: str, data: List[Dict]):
     # Verificar que los datos tengan las mismas columnas que la tabla
     for row in data:
         if set(row.keys()) != set(columns):
+            # Leer el archivo de texto
+            with open("archivo.txt", "r") as f:
+                valor = int(f.read())
+
+            # Sumar el valor leído con una cantidad deseada
+            cantidad = 1
+            valor_actualizado = valor + cantidad
+
+            # Escribir el valor actualizado al archivo de texto
+            with open("archivo.txt", "w") as f:
+                f.write(str(valor_actualizado))
+
             raise HTTPException(status_code=400, detail="Las columnas de los datos no coinciden con las de la tabla")
 
     # Ejecutar la inserción
