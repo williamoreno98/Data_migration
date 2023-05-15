@@ -1,3 +1,3 @@
 #!/bin/bash
 
-streamlit run front.py
+streamlit run main_page.py

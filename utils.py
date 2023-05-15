@@ -81,7 +81,7 @@ def create_plot(job):
     # Convertir la figura de matplotlib a imagen y mostrarla en Streamlit
     st.pyplot(fig)
     
-def top():
+def top(year):
     departments_data = pd.read_csv('./Input_data/departments.csv', header=None, names=['department_id', 'department'])
     hired_employees_data = pd.read_csv('./Input_data/hired_employees.csv', header=None, names=['id', 'name', 'datetime', 'department_id', 'job_id'])
     jobs_data = pd.read_csv('./Input_data/jobs.csv', header=None, names=['job_id', 'job'])
@@ -140,7 +140,7 @@ def create_plot2():
     
 def create_plot3(year):
     
-    top_departments= top()
+    top_departments= top(year)
     # Crear la figura y el eje
     fig, ax = plt.subplots()
 
@@ -159,17 +159,3 @@ def create_plot3(year):
     # Convertir la figura de matplotlib a imagen y mostrarla en Streamlit
     st.pyplot(fig)
 
-
-
-# Definir la interfaz de usuario con Streamlit
-st.title("Visualización de empleados contratados por trimestre")
-jobs_data = pd.read_csv('./Input_data/jobs.csv', header=None, names=['id', 'job'])
-job = st.selectbox("Selecciona el trabajo:", jobs_data["job"])
-create_plot(job)
-
-create_plot2()
-
-year=st.selectbox("Year to analyze", [2021,2022])
-# Convertir la figura de matplotlib a imagen y mostrarla en Streamlit
-
-create_plot3(year)
