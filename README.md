@@ -2,6 +2,21 @@
 # Solución de migración de datos y API REST para el proyecto de Big Data
 Este proyecto tiene como objetivo realizar la migración de datos históricos desde archivos CSV a un nuevo sistema de base de datos. Además, se requiere crear una API REST que permita recibir nuevos datos y cumplir con ciertos requisitos. A continuación, se detalla la solución paso a paso:
 
+# ¿Cómo probarlo?
+
+1. Ir al diccionario root del proyecto y escribir el siguiente comando:
+
+uvicorn migration_api:app --reload
+
+#  ¿Qué debo instalar?
+
+fastapi==0.95.1
+fastavro==1.7.4
+pyodbc==4.0.39
+uvicorn==0.22.0
+pandas==2.0.1
+
+
 ## Paso 1: Migración de datos históricos desde archivos CSV
 1. La solución implementada se encuentra en el archivo "migration_api.py".
 2. Se utiliza la biblioteca pandas de Python para leer los datos de los archivos CSV.
@@ -51,3 +66,11 @@ Este proyecto tiene como objetivo realizar la migración de datos históricos de
 ### Endpoint: /read_table/{table_name}
 1. Este endpoint permite leer los datos del archivo avro
 y mostrarlos en la respuesta del API para un posterior uso.
+
+## Apreciaciones adicionales
+
+1. Se realizo un dockerfile que corre el API en un contenedor en la nube.
+2. se agregó un archivo .env para incluir seguridad al repo y guardar las variables de entorno
+de la conexión de SQL server.
+3. Todo se realiza en la rama "/Data_migration" y al final se hace merge con el 
+otro challenge conservando todas las versiones del proceso de desarrollo realizado.
