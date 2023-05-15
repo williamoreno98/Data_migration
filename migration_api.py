@@ -346,6 +346,8 @@ async def save_table_avro(table_name: str):
 async def read_table_avro(table_name: str):
     
     import fastavro
+    # se tienen 3 ifs para leer cada uno de las tablas 
+    # a partir del archivo .avro creado y retornar la data inicial
     
     if table_name=='departments1':
         result=[]
