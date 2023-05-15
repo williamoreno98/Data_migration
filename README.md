@@ -8,6 +8,8 @@ Este proyecto tiene como objetivo realizar la migración de datos históricos de
 
 uvicorn migration_api:app --reload
 
+Output: http://127.0.0.1:8000/
+
 #  ¿Qué debo instalar?
 
 fastapi==0.95.1
