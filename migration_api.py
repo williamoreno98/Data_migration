@@ -1,3 +1,5 @@
+import os
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from typing import List, Dict
 from fastapi.exceptions import HTTPException
@@ -7,7 +9,7 @@ import pyodbc
 import json
 
 app = FastAPI()
-
+load_dotenv()
 
 @app.get("/create/{table_name}")
 async def create_table(table_name: str):
@@ -15,6 +17,7 @@ async def create_table(table_name: str):
     departments_data = pd.read_csv('./Input_data/departments.csv',header=None, names=['id', 'department'])
     hired_employees_data = pd.read_csv('./Input_data/hired_employees.csv',header=None, names=['id', 'name', 'datetime', 'department_id', 'job_id'])
     # Convertir la columna a tipo entero
+    hired_employees_data.fillna(-1, inplace=True)
     hired_employees_data['department_id'] = hired_employees_data['department_id'].astype(int)
     hired_employees_data['job_id'] = hired_employees_data['job_id'].astype(int)
 
@@ -22,8 +25,8 @@ async def create_table(table_name: str):
     
     if table_name=='departments1':
             # Establecer la conexión
-        server = 'LAPTOP-DF01N7UN'
-        database = 'departments_globant'
+        server = os.getenv('SQL_SERVER')
+        database = os.getenv('SQL_DATABASE')
 
         conn_str = (
             r'DRIVER={SQL Server};'
@@ -57,8 +60,8 @@ async def create_table(table_name: str):
     
     elif table_name=='employees1':
                 # Establecer la conexión
-        server = 'LAPTOP-DF01N7UN'
-        database = 'departments_globant'
+        server = os.getenv('SQL_SERVER')
+        database = os.getenv('SQL_DATABASE')
 
         conn_str = (
             r'DRIVER={SQL Server};'
@@ -96,8 +99,8 @@ async def create_table(table_name: str):
     elif table_name=='jobs1':
         
         # Establecer la conexión
-        server = 'LAPTOP-DF01N7UN'
-        database = 'departments_globant'
+        server = os.getenv('SQL_SERVER')
+        database = os.getenv('SQL_DATABASE')
 
         conn_str = (
             r'DRIVER={SQL Server};'
@@ -137,8 +140,8 @@ async def create_table(table_name: str):
 @app.get("/read/{table_name}")
 async def read_table(table_name: str):
     # Leer tabla
-    server = 'LAPTOP-DF01N7UN'
-    database = 'departments_globant'
+    server = os.getenv('SQL_SERVER')
+    database = os.getenv('SQL_DATABASE')
 
     # Cadenas de conexión con la autenticación de Windows
     conn_str = (
@@ -180,8 +183,8 @@ async def read_table(table_name: str):
 @app.post("/insert/{table_name}")
 async def insert_data(table_name: str, data: List[Dict]):
     # Leer tabla
-    server = 'LAPTOP-DF01N7UN'
-    database = 'departments_globant'
+    server = os.getenv('SQL_SERVER')
+    database = os.getenv('SQL_DATABASE')
 
     # Cadenas de conexión con la autenticación de Windows
     conn_str = (
@@ -223,10 +226,10 @@ async def insert_data(table_name: str, data: List[Dict]):
 
 
 @app.get("/save/{table_name}")
-async def save_table(table_name: str):
+async def save_table_avro(table_name: str):
     # Leer tabla
-    server = 'LAPTOP-DF01N7UN'
-    database = 'departments_globant'
+    server = os.getenv('SQL_SERVER')
+    database = os.getenv('SQL_DATABASE')
 
     # Cadenas de conexión con la autenticación de Windows
     conn_str = (
@@ -261,7 +264,7 @@ async def save_table(table_name: str):
     from fastavro import writer, parse_schema
 
     
-    if table_name== 'descriptions1':
+    if table_name== 'departments1':
         # Definir el esquema
         schema = {
             'doc': 'Descripciones',
@@ -270,7 +273,7 @@ async def save_table(table_name: str):
             'type': 'record',
             'fields': [
                 {'name': 'id', 'type': 'int'},
-                {'name': 'department_id', 'type': 'string'},
+                {'name': 'department', 'type': 'string'},
             ],
         }
         parsed_schema = parse_schema(schema)
@@ -313,7 +316,7 @@ async def save_table(table_name: str):
             'type': 'record',
             'fields': [
                 {'name': 'id', 'type': 'int'},
-                {'name': 'job', 'type': 'int'},
+                {'name': 'job', 'type': 'string'},
             ],
         }
         parsed_schema = parse_schema(schema)
@@ -328,20 +331,18 @@ async def save_table(table_name: str):
         return {f'message": "Ha ingresado el nombre de una tabla que no se ha creado aun'}
 
 @app.get("/read_avro/{table_name}")
-async def read_avro(table_name: str):
+async def read_table_avro(table_name: str):
     
     import fastavro
     
-    if table_name=='descriptions1':
+    if table_name=='departments1':
         result=[]
-        with open('./Backup/descriptions.avro', 'rb') as fp:
+        with open('./Backup/departments.avro', 'rb') as fp:
             reader = fastavro.reader(fp)
             print()
             schema = reader.schema
             for record in reader:
                 result.append(record)
-        
-        print(result)
         
         result=json.JSONEncoder().encode(result)
         
@@ -358,8 +359,6 @@ async def read_avro(table_name: str):
             for record in reader:
                 result.append(record)
         
-        print(result)
-        
         result=json.JSONEncoder().encode(result)
         
         return {result}
@@ -373,8 +372,6 @@ async def read_avro(table_name: str):
             schema = reader.schema
             for record in reader:
                 result.append(record)
-        
-        print(result)
         
         result=json.JSONEncoder().encode(result)
         
