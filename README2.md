@@ -21,8 +21,10 @@ streamlit==1.22.0
 
 1. El front se despliega con streamlit en el archivo "main_page.py" dependiendo de 2 endpoints para
 cada uno de los dos requirements que se encuentran en la carpetas "pages".
-2. Todas las pruebas se realizaron en el notebook "Notebook_graphs.ipynb"
-3. Se despliega la solución en un contenedor de docker funcional.
-4. El front cuenta con un reporte completo con los requerimientos para que los stakeholders
+2. Las funciones de la logica para filtrar la data como se deseaba en el requerimiento 1 y 2 se encuentran 
+en el archivo "utils.py" que es llamado en el front en "pages".
+3. Todas las pruebas se realizaron en el notebook "Notebook_graphs.ipynb"
+4. Se despliega la solución en un contenedor de docker funcional.
+5. El front cuenta con un reporte completo con los requerimientos para que los stakeholders
 puedan filtrar facilmente por tipo de trabajo y puedan ver un historico de los datos
 de contratacion para tomar decisiones.
